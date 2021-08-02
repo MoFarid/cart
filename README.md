@@ -96,7 +96,7 @@ Make sure that the following prerequisites are installed with the required versi
 
 ### Installation
 
-A quick way to run the apps without installing all dependencies locally is through Docker.
+A quick way to run the server app without installing all dependencies locally, is through Docker.
 
 1. Clone the repo
    ```sh
@@ -105,7 +105,7 @@ A quick way to run the apps without installing all dependencies locally is throu
 2. Navigate to `backend` and run the server using Docker
    ```sh
    cd backend
-   yarn docker:start
+   yarn docker:prod
    ```
 3. Navigate to `frontend` and run the client app using
    ```sh
