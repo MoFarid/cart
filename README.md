@@ -113,6 +113,8 @@ A quick way to run the apps without installing all dependencies locally is throu
    yarn start
    ```
 
+The client app will be running on port 3000 and the backend server will be running on port 5000.
+
 <!-- ACKNOWLEDGEMENTS -->
 
 ## Acknowledgements
