@@ -31,9 +31,17 @@ const remove = {
   }),
 };
 
+const evaluate = {
+  body: Joi.object().keys({
+    cartId: Joi.string().required(),
+  }),
+};
+
 module.exports = {
   init,
+  get,
   add,
   remove,
   change,
+  evaluate,
 };

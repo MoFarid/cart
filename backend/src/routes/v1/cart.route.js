@@ -11,5 +11,6 @@ router.get('/get', validate(cartValidation.get), cartController.get);
 router.post('/add', validate(cartValidation.add), cartController.add);
 router.post('/change', validate(cartValidation.change), cartController.change);
 router.post('/remove', validate(cartValidation.remove), cartController.remove);
+router.post('/evaluate', validate(cartValidation.evaluate), cartController.evaluate);
 
 module.exports = router;

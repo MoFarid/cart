@@ -63,10 +63,26 @@ const applyToCart = async (cartId, callback) => {
   return cart;
 };
 
+/**
+ * Evaluate the total cost of cart after applying discounts
+ * @param {String} cartId
+ * @param {Number} fixedValueDiscount
+ * @param {Number} percentageDiscount
+ * @returns {Promise<Cart>}
+ */
+const evaluate = async (cartId, fixedValueDiscount, percentageDiscount) => {
+  const cart = await get(cartId);
+  let amount = cart.items.map((item) => item.price).reduce((previous, current) => previous + current, 0);
+  amount *= 1 - percentageDiscount;
+  amount -= fixedValueDiscount;
+  return amount;
+};
+
 module.exports = {
   init,
   get,
   add,
   change,
   remove,
+  evaluate,
 };

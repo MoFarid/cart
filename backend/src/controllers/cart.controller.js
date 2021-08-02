@@ -27,10 +27,16 @@ const remove = catchAsync(async (req, res) => {
   res.send({ cart });
 });
 
+const evaluate = catchAsync(async (req, res) => {
+  const amount = await cartService.evaluate(req.body.cartId, req.body.fixedValueDiscount, req.body.percentageDiscount);
+  res.send({ amount });
+});
+
 module.exports = {
   init,
   get,
   add,
   remove,
   change,
+  evaluate,
 };
