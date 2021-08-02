@@ -1,4 +1,6 @@
+const httpStatus = require('http-status');
 const { Coupon } = require('../models');
+const ApiError = require('../utils/ApiError');
 
 /**
  * Create a coupon
@@ -15,7 +17,11 @@ const create = async (couponBody) => {
  * @returns {Promise<Coupon>}
  */
 const getByCode = async (code) => {
-  return Coupon.findOne({ code });
+  const coupon = await Coupon.findOne({ code });
+  if (!coupon) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Coupon not found');
+  }
+  return coupon;
 };
 
 /**
@@ -25,7 +31,6 @@ const getByCode = async (code) => {
  */
 const removeByCode = async (code) => {
   const coupon = await getByCode(code);
-  console.log(coupon);
   return Coupon.findByIdAndRemove(coupon.id);
 };
 
