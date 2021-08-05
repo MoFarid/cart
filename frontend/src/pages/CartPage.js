@@ -12,6 +12,8 @@ export default function CartPage({ cartId }) {
   const [cartState, setCartState] = useState({});
   const [cartList, changeCartList] = useState([]);
   const [couponAccepted, setCouponAccepted] = useState(null);
+
+  const [coupon, setCoupon] = useState({ isFixed: true, value: 0 });
   let currentId = 0;
 
   const sendRequest = useCallback(
@@ -66,24 +68,36 @@ export default function CartPage({ cartId }) {
 
   const isInitial = () => cartList.length === 0;
 
-  const calcTotal = () =>
-    cartList.map((e) => e.price * e.quantity).reduce((a, b) => a + b, 0);
+  const calcTotal = ({ isFixed, value }) => {
+    const v = cartList
+      .map((e) => e.price * e.quantity)
+      .reduce((a, b) => a + b, 0);
+    if (isFixed) {
+      return v - value;
+    }
+    return v * (1 - value);
+  };
 
-  const validateCoupon = async (coupon) => {
-    const res = await sendRequest("coupon/check", { code: coupon }, false);
+  const validateCoupon = async (couponText) => {
+    if (couponText === "") {
+      return { isFixed: false, value: 0 };
+    }
+
+    const res = await sendRequest("coupon/check", { code: couponText }, false);
     const isAccepted = res.status === 200;
     setCouponAccepted(isAccepted);
 
     if (!isAccepted) {
       alert("Coupon Rejected!");
-      return;
     }
 
     const { isFixed, value } = await res.json();
     const valueAdded = `Coupon gives you ${
       isFixed ? value + " Fixed" : value * 100 + "%"
     }`;
+
     alert(valueAdded);
+    setCoupon({ isFixed, value });
   };
 
   const getInputColor = () => {
@@ -136,7 +150,7 @@ export default function CartPage({ cartId }) {
           </div>
         </nav>
 
-        <h1 className="subtitle">{`Total: ${calcTotal()}`}</h1>
+        <h1 className="subtitle">{`Total: ${calcTotal(coupon)}`}</h1>
 
         <br />
         <div className="buttons">
@@ -144,6 +158,7 @@ export default function CartPage({ cartId }) {
             type="submit"
             className="button is-small is-link"
             disabled={isInitial()}
+            onClick={() => alert("Please enter your card info for payment")}
           >
             Proceed to Checkout
           </button>
