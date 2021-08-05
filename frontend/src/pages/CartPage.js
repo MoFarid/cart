@@ -11,24 +11,29 @@ export default function CartPage({ cartId }) {
   console.log(cartId);
   const [cartState, setCartState] = useState({});
   const [cartList, changeCartList] = useState([]);
+  const [couponAccepted, setCouponAccepted] = useState(null);
   let currentId = 0;
 
   const sendRequest = useCallback(
-    async (action, data) =>
-      fetch(`http://localhost:5000/v1/cart/${action}`, {
+    async (action, data, withCartId = true) =>
+      fetch(`http://localhost:5000/v1/${action}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cartId: cartId,
-          ...data,
-        }),
+        body: JSON.stringify(
+          withCartId
+            ? {
+                cartId: cartId,
+                ...data,
+              }
+            : data
+        ),
       }),
     [cartId]
   );
 
   const onAddition = useCallback(async () => {
     const newItem = getRandomItem();
-    await sendRequest("add", {
+    await sendRequest("cart/add", {
       itemData: {
         name: newItem.name,
         price: newItem.price,
@@ -39,7 +44,7 @@ export default function CartPage({ cartId }) {
 
   const onRemoval = useCallback(
     async (idOfItemToRemove) => {
-      await sendRequest("remove", {
+      await sendRequest("cart/remove", {
         itemIndex: idOfItemToRemove,
       });
       changeCartList((l) => l.filter(({ id }) => idOfItemToRemove !== id));
@@ -50,7 +55,7 @@ export default function CartPage({ cartId }) {
   const onClear = useCallback(async () => {
     await Promise.all(
       cartList.map(async (e) => {
-        await sendRequest("remove", {
+        await sendRequest("cart/remove", {
           itemIndex: e.id,
         });
       })
@@ -60,6 +65,33 @@ export default function CartPage({ cartId }) {
   }, [cartList, sendRequest]);
 
   const isInitial = () => cartList.length === 0;
+
+  const calcTotal = () =>
+    cartList.map((e) => e.price * e.quantity).reduce((a, b) => a + b, 0);
+
+  const validateCoupon = async (coupon) => {
+    const res = await sendRequest("coupon/check", { code: coupon }, false);
+    const isAccepted = res.status === 200;
+    setCouponAccepted(isAccepted);
+
+    if (!isAccepted) {
+      alert("Coupon Rejected!");
+      return;
+    }
+
+    const { isFixed, value } = await res.json();
+    const valueAdded = `Coupon gives you ${
+      isFixed ? value + " Fixed" : value * 100 + "%"
+    }`;
+    alert(valueAdded);
+  };
+
+  const getInputColor = () => {
+    if (couponAccepted === null) {
+      return "is-info";
+    }
+    return couponAccepted ? "is-success" : "is-danger";
+  };
 
   return (
     <div className="App">
@@ -85,7 +117,8 @@ export default function CartPage({ cartId }) {
         <nav className="level">
           <div className="level-left">
             <input
-              className="input level-item is-small"
+              className={`input level-item is-small ${getInputColor()}`}
+              id="coupon"
               type="text"
               placeholder="Enter Coupon"
               disabled={isInitial()}
@@ -94,11 +127,16 @@ export default function CartPage({ cartId }) {
               type="submit"
               className="button is-small is-info level-item"
               disabled={isInitial()}
+              onClick={() =>
+                validateCoupon(document.getElementById("coupon").value)
+              }
             >
               Validate Coupon
             </button>
           </div>
         </nav>
+
+        <h1 className="subtitle">{`Total: ${calcTotal()}`}</h1>
 
         <br />
         <div className="buttons">
