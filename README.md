@@ -110,6 +110,7 @@ A quick way to run the server app without installing all dependencies locally, i
 3. Navigate to `frontend` and run the client app using
    ```sh
    cd frontend
+   yarn install
    yarn start
    ```
 
