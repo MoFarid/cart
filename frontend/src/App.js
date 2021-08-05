@@ -1,90 +1,31 @@
-import React, { useState, useCallback } from "react";
-import "bulma/css/bulma.css";
-import Form from "usetheform";
+import React, { useEffect, useState, useCallback } from "react";
 
-import "./styles.css";
-
-import { Cart } from "./components/Cart";
-import { getRandomItem } from "./utils/itemCreator";
+import CartPage from "./pages/CartPage";
 
 export default function App() {
-  const [cartState, setCartState] = useState({});
-  const [cartList, changeCartList] = useState([]);
-  let currentId = 0;
+  const localValue = JSON.parse(localStorage.getItem("cartId"));
+  const [cartId, setCartId] = useState(localValue);
 
-  const onAddition = useCallback(() => {
-    const newItem = getRandomItem();
-    changeCartList((l) => [...l, { ...newItem, id: currentId++, quantity: 1 }]);
-  }, [currentId]);
+  const initCart = useCallback(async () => {
+    await fetch("http://localhost:5000/v1/cart/init", {
+      method: "POST",
+      body: {},
+    })
+      .then((res) => {
+        return res.json();
+      })
+      .then((data) => {
+        const id = data.cart.id;
+        localStorage.setItem("cartId", JSON.stringify(id));
+        setCartId(id);
+      });
+  }, []);
 
-  const onRemoval = useCallback(
-    (idOfItemToRemove) =>
-      changeCartList((l) => l.filter(({ id }) => idOfItemToRemove !== id)),
-    []
-  );
+  useEffect(() => {
+    if (cartId === null) {
+      initCart();
+    }
+  }, [cartId, initCart]);
 
-  const onClear = useCallback(() => changeCartList((l) => []), []);
-
-  const isInitial = () => cartList.length === 0;
-
-  return (
-    <div className="App">
-      <div className="box">
-        <h1 className="title">Your Shopping Cart</h1>
-        <Form
-          onSubmit={(s) => console.log(s)}
-          onChange={(s) => setCartState(s)}
-        >
-          <Cart items={cartList} onRemoval={onRemoval} />
-        </Form>
-        <br />
-        <button
-          type="button"
-          className="button is-small is-success"
-          onClick={onAddition}
-        >
-          Add new random item
-        </button>
-        <br />
-        <br />
-
-        <nav className="level">
-          <div className="level-left">
-            <input
-              className="input level-item is-small"
-              type="text"
-              placeholder="Enter Coupon"
-              disabled={isInitial()}
-            ></input>
-            <button
-              type="submit"
-              className="button is-small is-info level-item"
-              disabled={isInitial()}
-            >
-              Validate Coupon
-            </button>
-          </div>
-        </nav>
-
-        <br />
-        <div className="buttons">
-          <button
-            type="submit"
-            className="button is-small is-link"
-            disabled={isInitial()}
-          >
-            Proceed to Checkout
-          </button>
-          <button
-            type="submit"
-            className="button is-small is-danger"
-            onClick={onClear}
-            disabled={isInitial()}
-          >
-            Clear Cart
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  return cartId === null ? <h1> Loading </h1> : <CartPage cartId={cartId} />;
 }
